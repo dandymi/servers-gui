@@ -57,7 +57,10 @@ function startServer(script) {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
     exec(`${script} start`, (error, stdout, stderr) => {
-      if (error) {
+      // If the script reports already running, treat as success
+      if (error && error.code === 1 && !stderr && stdout.includes('Server is already running')) {
+        resolve({ stdout, stderr })
+      } else if (error) {
         reject({ error: error.message, stderr })
       } else {
         resolve({ stdout, stderr })
@@ -70,7 +73,10 @@ function stopServer(script) {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
     exec(`${script} stop`, (error, stdout, stderr) => {
-      if (error) {
+      // If the script reports not running (no PID file), treat as success
+      if (error && error.code === 1 && !stderr && stdout.includes('Server is not running')) {
+        resolve({ stdout, stderr })
+      } else if (error) {
         reject({ error: error.message, stderr })
       } else {
         resolve({ stdout, stderr })
