@@ -1,0 +1,73 @@
+{
+  "name": "servers-gui",
+  "version": "1.0.0",
+  "description": "GUI interface for managing bash scripts to start/stop applications with on/off indicators",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never"
+  },
+  "keywords": [
+    "electron",
+    "gui",
+    "server",
+    "management",
+    "bash",
+    "scripts"
+  ],
+  "author": {
+    "name": "Daniele",
+    "email": "daniele@example.com"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  },
+  "build": {
+    "appId": "com.daniele.serversgui",
+    "productName": "Servers GUI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "servers.yml",
+      "scripts/",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "maintainer": "Daniele <daniele@example.com>"
+    },
+    "win": {
+      "target": "NSIS"
+    }
+  },
+  "homepage": "https://github.com/daniele/servers-gui"
+}

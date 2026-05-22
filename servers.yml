@@ -1,0 +1,9 @@
+# Server configuration for Servers GUI
+# Each server entry:
+#   name: Display name
+#   script: Path to the control script (e.g., ./start-stop.sh)
+#   autostart: Whether to start this server when the app launches (true/false)
+servers:
+  - name: "Example Server"
+    script: "./scripts/example.sh"
+    autostart: false
