@@ -33,7 +33,8 @@ function readServers() {
   try {
     const filePath = path.join(__dirname, 'servers.yml')
     const data = fs.readFileSync(filePath, 'utf8')
-    return yaml.load(data) || []
+    const parsed = yaml.load(data)
+    return parsed && parsed.servers ? parsed.servers : []
   } catch (error) {
     console.error('Error reading servers.yml:', error)
     return []
@@ -43,7 +44,7 @@ function readServers() {
 function writeServers(servers) {
   try {
     const filePath = path.join(__dirname, 'servers.yml')
-    const data = yaml.dump(servers)
+    const data = yaml.dump({ servers })
     fs.writeFileSync(filePath, data, 'utf8')
     return true
   } catch (error) {
