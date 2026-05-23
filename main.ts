@@ -11,18 +11,26 @@ interface Server {
 
 let mainWindow
 
+const getAssetPath = (fileName: string) => {
+  // When packaged, the file is in the same directory as the main.js
+  // When in development (running from dist/), we need to go up one level to the project root
+  return app.isPackaged 
+    ? path.join(__dirname, fileName) 
+    : path.join(__dirname, '..', fileName)
+}
+
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: getAssetPath('preload.js'),
       contextIsolation: true,
       enableRemoteModule: false
     }
   })
 
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile(getAssetPath('index.html'))
 
   // Auto-start servers on app ready
   mainWindow.webContents.on('did-finish-load', () => {
@@ -37,7 +45,7 @@ function createWindow () {
 
 function readServers(): Server[] {
   try {
-    const filePath = path.join(__dirname, 'servers.yml')
+    const filePath = getAssetPath('servers.yml')
     const data = fs.readFileSync(filePath, 'utf8')
     const parsed = yaml.load(data)
     return parsed && parsed.servers ? parsed.servers : []
@@ -49,7 +57,7 @@ function readServers(): Server[] {
 
 function writeServers(servers: Server[]): boolean {
   try {
-    const filePath = path.join(__dirname, 'servers.yml')
+    const filePath = getAssetPath('servers.yml')
     const data = yaml.dump({ servers })
     fs.writeFileSync(filePath, data, 'utf8')
     return true
