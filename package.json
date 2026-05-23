@@ -2,11 +2,12 @@
   "name": "servers-gui",
   "version": "1.0.0",
   "description": "GUI interface for managing bash scripts to start/stop applications with on/off indicators",
-  "main": "main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder",
-    "dist": "electron-builder --publish=never"
+    "build": "tsc && electron-builder",
+    "dist": "electron-builder --publish=never",
+    "watch": "tsc -w"
   },
   "keywords": [
     "electron",
@@ -23,11 +24,19 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/electron": "^1.6.10",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@types/js-yaml": "^4.0.5",
     "electron": "^42.2.0",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^26.8.1",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "js-yaml": "^4.1.1"
+    "js-yaml": "^4.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "build": {
     "appId": "com.daniele.serversgui",
@@ -36,9 +45,8 @@
       "output": "release"
     },
     "files": [
-      "main.js",
+      "dist/**/*",
       "preload.js",
-      "renderer.js",
       "index.html",
       "style.css",
       "servers.yml",
