@@ -11,6 +11,7 @@ A desktop application for managing and monitoring server processes built with El
 - YAML-based server configuration persistence
 - Auto-start configured servers on application launch
 - Cross-platform Linux distribution (AppImage and Debian package)
+- Comprehensive test suite with Jest
 
 ## Installation
 
@@ -42,6 +43,9 @@ npm install
 
 # Run in development mode
 npm start
+
+# Run tests
+npm test
 ```
 
 ## Usage
@@ -139,40 +143,57 @@ The build artifacts will be available in the `release/` directory:
 ```
 servers-gui/
 ├── src/
-│   ├── main.ts             # Electron main process
+│   ├── main.ts                 # Electron main process
+│   ├── serverService.ts        # Extracted service layer for server operations
 │   ├── components/
-│   │   └── ServerManager.tsx # React component for server management
-│   ├── renderer.tsx        # React entry point
-│   ├── preload.js          # Electron preload script
-│   └── index.html          # Main HTML file
-├── servers.yml             # Server configuration (auto-generated)
-├── package.json            # Project dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-└── release/                # Built distributables (AppImage, .deb)
+│   │   ├── ServerManager.tsx   # React component for server management
+│   │   ├── ServerManager.test.tsx # Tests for ServerManager component
+│   │   └── serverService.test.ts # Tests for serverService
+│   ├── renderer.tsx            # React entry point
+│   ├── preload.js              # Electron preload script
+│   └── index.html              # Main HTML file
+├── servers.yml                 # Server configuration (auto-generated)
+├── package.json                # Project dependencies and scripts
+├── tsconfig.json               # TypeScript configuration
+├── jest.config.js              # Jest configuration
+└── release/                    # Built distributables (AppImage, .deb)
+```
+
+## Testing
+
+The project includes a comprehensive test suite using Jest and React Testing Library:
+
+- **Unit tests** for the server service layer (`src/serverService.test.ts`)
+- **Component tests** for the ServerManager React component (`src/components/ServerManager.test.tsx`)
+
+To run the tests:
+```bash
+npm test
 ```
 
 ## Code Documentation
 
 ### Main Process (`src/main.ts`)
 
+#### IPC Handlers
+- `read-servers`: Returns current server list (delegates to serverService)
+- `write-servers`: Saves updated server list (delegates to serverService)
+- `start-server`: Starts a server script (delegates to serverService)
+- `stop-server`: Stops a server script (delegates to serverService)
+- `get-server-status`: Gets status of a server script (delegates to serverService)
+
+### Service Layer (`src/serverService.ts`)
+
 #### Interfaces
 - `Server`: Defines server configuration (`name`, `script`, optional `autostart`)
 - `ExecResult`: Contains command execution results (`stdout`, `stderr`)
 
 #### Functions
-- `createWindow()`: Creates and configures the Electron BrowserWindow
 - `readServers()`: Reads and parses `servers.yml` into Server[]
 - `writeServers(servers: Server[])`: Writes server array to `servers.yml`
 - `startServer(script: string)`: Executes `{script} start` via child_process
 - `stopServer(script: string)`: Executes `{script} stop` via child_process
 - `getServerStatus(script: string)`: Executes `{script} status` via child_process
-
-#### IPC Handlers
-- `read-servers`: Returns current server list
-- `write-servers`: Saves updated server list
-- `start-server`: Starts a server script
-- `stop-server`: Stops a server script
-- `get-server-status`: Gets status of a server script
 
 ### Renderer Process (`src/renderer.tsx`)
 

@@ -3,6 +3,12 @@ const path = require('path')
 const fs = require('fs')
 const yaml = require('js-yaml')
 
+interface Server {
+  name: string
+  script: string
+  autostart: boolean
+}
+
 let mainWindow
 
 function createWindow () {
@@ -21,7 +27,7 @@ function createWindow () {
   // Auto-start servers on app ready
   mainWindow.webContents.on('did-finish-load', () => {
     const servers = readServers()
-    servers.forEach(server => {
+    servers.forEach((server: Server) => {
       if (server.autostart) {
         startServer(server.script)
       }
@@ -29,7 +35,7 @@ function createWindow () {
   })
 }
 
-function readServers() {
+function readServers(): Server[] {
   try {
     const filePath = path.join(__dirname, 'servers.yml')
     const data = fs.readFileSync(filePath, 'utf8')
@@ -41,7 +47,7 @@ function readServers() {
   }
 }
 
-function writeServers(servers) {
+function writeServers(servers: Server[]): boolean {
   try {
     const filePath = path.join(__dirname, 'servers.yml')
     const data = yaml.dump({ servers })
@@ -53,10 +59,10 @@ function writeServers(servers) {
   }
 }
 
-function startServer(script) {
+function startServer(script: string): Promise<{ stdout: string; stderr: string }> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
-    exec(`${script} start`, (error, stdout, stderr) => {
+    exec(`${script} start`, (error: any, stdout: string, stderr: string) => {
       // If the script reports already running, treat as success
       if (error && error.code === 1 && !stderr && stdout.includes('Server is already running')) {
         resolve({ stdout, stderr })
@@ -69,10 +75,10 @@ function startServer(script) {
   })
 }
 
-function stopServer(script) {
+function stopServer(script: string): Promise<{ stdout: string; stderr: string }> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
-    exec(`${script} stop`, (error, stdout, stderr) => {
+    exec(`${script} stop`, (error: any, stdout: string, stderr: string) => {
       // If the script reports not running (no PID file), treat as success
       if (error && error.code === 1 && !stderr && stdout.includes('Server is not running')) {
         resolve({ stdout, stderr })
@@ -85,10 +91,10 @@ function stopServer(script) {
   })
 }
 
-function getServerStatus(script) {
+function getServerStatus(script: string): Promise<{ stdout: string; stderr: string; code: number }> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
-    exec(`${script} status`, (error, stdout, stderr) => {
+    exec(`${script} status`, (error: any, stdout: string, stderr: string) => {
       // Some scripts might return non-zero for status but still provide output
       if (error && !stdout && !stderr) {
         reject({ error: error.message })
@@ -101,10 +107,10 @@ function getServerStatus(script) {
 
 // IPC Handlers
 ipcMain.handle('read-servers', () => readServers())
-ipcMain.handle('write-servers', (event, servers) => writeServers(servers))
-ipcMain.handle('start-server', (event, script) => startServer(script))
-ipcMain.handle('stop-server', (event, script) => stopServer(script))
-ipcMain.handle('get-server-status', (event, script) => getServerStatus(script))
+ipcMain.handle('write-servers', (event: any, servers: Server[]) => writeServers(servers))
+ipcMain.handle('start-server', (event: any, script: string) => startServer(script))
+ipcMain.handle('stop-server', (event: any, script: string) => stopServer(script))
+ipcMain.handle('get-server-status', (event: any, script: string) => getServerStatus(script))
 
 app.whenReady().then(() => {
   createWindow()

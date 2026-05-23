@@ -115,6 +115,7 @@ const ServerManager: React.FC<ServerManagerProps> = () => {
         <input
           type="file"
           ref={fileInputRef}
+          data-testid="file-input"
           style={{ display: 'none' }}
           accept=".txt,.js,.ts,.json,.sh"
           onChange={handleFileChange}
