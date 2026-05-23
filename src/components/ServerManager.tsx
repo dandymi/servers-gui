@@ -1,24 +1,52 @@
 import React, { useState, useRef } from 'react';
 
-interface Server {
-  id: number;
-  title: string;
-  script: string;
-  running: boolean;
-}
-
+/**
+ * Properties for the ServerManager component.
+ * Currently no props are used, but this interface allows for future extension.
+ */
 interface ServerManagerProps {
   // No props for now, but we can extend later
 }
 
+/**
+ * Represents a server being managed by the application.
+ */
+interface Server {
+  /** Unique identifier for the server (timestamp-based) */
+  id: number;
+  /** Display name of the server (typically the filename) */
+  title: string;
+  /** Filesystem path to the server script */
+  script: string;
+  /** Current running state of the server */
+  running: boolean;
+}
+
+/**
+ * Main component for managing server processes.
+ * Provides UI for adding servers via file chooser and controlling their state.
+ * Features light brown background (#f5deb3) layout with server rows containing:
+ * title, script path, start/stop/remove buttons, and running status indicator.
+ */
 const ServerManager: React.FC<ServerManagerProps> = () => {
+  /** Array of servers currently being managed */
   const [servers, setServers] = useState<Server[]>([]);
+  /** Reference to the hidden file input element for server script selection */
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Triggers the file chooser dialog when the "Add Server" button is clicked.
+   * The input element is hidden and activated programmatically.
+   */
   const handleAddServer = () => {
     fileInputRef.current?.click();
   };
 
+  /**
+   * Handles file selection from the file chooser dialog.
+   * Reads the selected file as text and adds it as a new server entry.
+   * @param e - React change event from the file input element
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -39,6 +67,11 @@ const ServerManager: React.FC<ServerManagerProps> = () => {
     e.target.value = '';
   };
 
+  /**
+   * Updates the running state of a server to true (started).
+   * In a production implementation, this would invoke Electron IPC to start the actual process.
+   * @param id - Unique identifier of the server to start
+   */
   const handleStartServer = (id: number) => {
     setServers(prev =>
       prev.map(server =>
@@ -50,6 +83,11 @@ const ServerManager: React.FC<ServerManagerProps> = () => {
     // For now, we'll just update the UI - in production this would call electronAPI
   };
 
+  /**
+   * Updates the running state of a server to false (stopped).
+   * In a production implementation, this would invoke Electron IPC to stop the actual process.
+   * @param id - Unique identifier of the server to stop
+   */
   const handleStopServer = (id: number) => {
     setServers(prev =>
       prev.map(server =>
@@ -60,6 +98,10 @@ const ServerManager: React.FC<ServerManagerProps> = () => {
     console.log(`Stopping server ${id}`);
   };
 
+  /**
+   * Removes a server from the management list.
+   * @param id - Unique identifier of the server to remove
+   */
   const handleRemoveServer = (id: number) => {
     setServers(prev => prev.filter(server => server.id !== id));
   };

@@ -5,17 +5,31 @@ import * as yaml from 'js-yaml'
 
 let mainWindow: BrowserWindow | null = null
 
+/**
+ * Represents a server configuration.
+ */
 interface Server {
+  /** Human-readable name of the server */
   name: string
+  /** Path to the server script */
   script: string
+  /** Whether to start the server automatically on app launch */
   autostart?: boolean
 }
 
+/**
+ * Result of executing a server script command.
+ */
 interface ExecResult {
+  /** Standard output from the command */
   stdout: string
+  /** Standard error from the command */
   stderr: string
 }
 
+/**
+ * Creates the main Electron browser window.
+ */
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: 800,
@@ -39,6 +53,10 @@ function createWindow () {
   })
 }
 
+/**
+ * Reads and parses the servers.yml configuration file.
+ * @returns Array of Server objects (empty array if file doesn't exist or is invalid)
+ */
 function readServers () {
   try {
     const filePath = path.join(__dirname, '../servers.yml')
@@ -55,6 +73,11 @@ function readServers () {
   }
 }
 
+/**
+ * Writes the server array to servers.yml.
+ * @param servers Array of Server objects to write
+ * @returns True if successful, false otherwise
+ */
 function writeServers (servers: Server[]) {
   try {
     const filePath = path.join(__dirname, '../servers.yml')
@@ -67,6 +90,11 @@ function writeServers (servers: Server[]) {
   }
 }
 
+/**
+ * Starts a server script.
+ * @param script Path to the server script
+ * @returns Promise resolving to command execution result
+ */
 function startServer (script: string): Promise<ExecResult> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
@@ -83,6 +111,11 @@ function startServer (script: string): Promise<ExecResult> {
   })
 }
 
+/**
+ * Stops a server script.
+ * @param script Path to the server script
+ * @returns Promise resolving to command execution result
+ */
 function stopServer (script: string): Promise<ExecResult> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
@@ -99,6 +132,11 @@ function stopServer (script: string): Promise<ExecResult> {
   })
 }
 
+/**
+ * Gets the status of a server script.
+ * @param script Path to the server script
+ * @returns Promise resolving to status object with stdout, stderr, and exit code
+ */
 function getServerStatus (script: string): Promise<{ stdout: string; stderr: string; code: number }> {
   const { exec } = require('child_process')
   return new Promise((resolve, reject) => {
@@ -115,10 +153,44 @@ function getServerStatus (script: string): Promise<{ stdout: string; stderr: str
 }
 
 // IPC Handlers
+
+/**
+ * IPC handler to read servers list.
+ * @param _event Electron IPC event (unused)
+ * @returns Array of Server objects
+ */
 ipcMain.handle('read-servers', async (_event: IpcMainInvokeEvent) => readServers())
+
+/**
+ * IPC handler to write servers list.
+ * @param _event Electron IPC event (unused)
+ * @param servers Array of Server objects to save
+ * @returns True if successful
+ */
 ipcMain.handle('write-servers', async (_event: IpcMainInvokeEvent, servers: Server[]) => writeServers(servers))
+
+/**
+ * IPC handler to start a server.
+ * @param _event Electron IPC event (unused)
+ * @param script Path to server script
+ * @returns Execution result
+ */
 ipcMain.handle('start-server', async (_event: IpcMainInvokeEvent, script: string) => startServer(script))
+
+/**
+ * IPC handler to stop a server.
+ * @param _event Electron IPC event (unused)
+ * @param script Path to server script
+ * @returns Execution result
+ */
 ipcMain.handle('stop-server', async (_event: IpcMainInvokeEvent, script: string) => stopServer(script))
+
+/**
+ * IPC handler to get server status.
+ * @param _event Electron IPC event (unused)
+ * @param script Path to server script
+ * @returns Status object
+ */
 ipcMain.handle('get-server-status', async (_event: IpcMainInvokeEvent, script: string) => getServerStatus(script))
 
 app.whenReady().then(() => {
