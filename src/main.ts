@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
@@ -72,7 +72,7 @@ function startServer (script: string): Promise<ExecResult> {
   return new Promise((resolve, reject) => {
     exec(`${script} start`, (error: Error | null, stdout: string, stderr: string) => {
       // If the script reports already running, treat as success
-      if (error && (error as any).code === 1 && !stderr && stdout.includes('Server is already running')) {
+      if (error && typeof (error as { code?: number | string }).code === 'number' && (error as { code?: number | string }).code === 1 && !stderr && stdout.includes('Server is already running')) {
         resolve({ stdout, stderr })
       } else if (error) {
         reject({ error: error.message, stderr })
@@ -88,7 +88,7 @@ function stopServer (script: string): Promise<ExecResult> {
   return new Promise((resolve, reject) => {
     exec(`${script} stop`, (error: Error | null, stdout: string, stderr: string) => {
       // If the script reports not running (no PID file), treat as success
-      if (error && (error as any).code === 1 && !stderr && stdout.includes('Server is not running')) {
+      if (error && typeof (error as { code?: number | string }).code === 'number' && (error as { code?: number | string }).code === 1 && !stderr && stdout.includes('Server is not running')) {
         resolve({ stdout, stderr })
       } else if (error) {
         reject({ error: error.message, stderr })
@@ -107,18 +107,19 @@ function getServerStatus (script: string): Promise<{ stdout: string; stderr: str
       if (error && !stdout && !stderr) {
         reject({ error: error.message })
       } else {
-        resolve({ stdout, stderr, code: (error as any)?.code ?? 0 })
+        const code = (error as { code?: number | string })?.code ?? 0
+        resolve({ stdout, stderr, code: typeof code === 'number' ? code : 0 })
       }
     })
   })
 }
 
 // IPC Handlers
-ipcMain.handle('read-servers', () => readServers())
-ipcMain.handle('write-servers', (_event, servers) => writeServers(servers))
-ipcMain.handle('start-server', (_event, script) => startServer(script))
-ipcMain.handle('stop-server', (_event, script) => stopServer(script))
-ipcMain.handle('get-server-status', (_event, script) => getServerStatus(script))
+ipcMain.handle('read-servers', async (_event: IpcMainInvokeEvent) => readServers())
+ipcMain.handle('write-servers', async (_event: IpcMainInvokeEvent, servers: Server[]) => writeServers(servers))
+ipcMain.handle('start-server', async (_event: IpcMainInvokeEvent, script: string) => startServer(script))
+ipcMain.handle('stop-server', async (_event: IpcMainInvokeEvent, script: string) => stopServer(script))
+ipcMain.handle('get-server-status', async (_event: IpcMainInvokeEvent, script: string) => getServerStatus(script))
 
 app.whenReady().then(() => {
   createWindow()

@@ -7,7 +7,11 @@ interface Server {
   running: boolean;
 }
 
-const ServerManager: React.FC = () => {
+interface ServerManagerProps {
+  // No props for now, but we can extend later
+}
+
+const ServerManager: React.FC<ServerManagerProps> = () => {
   const [servers, setServers] = useState<Server[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
